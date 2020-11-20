@@ -1,8 +1,11 @@
 import React, {Component} from 'react';
+import Types from '../Types/Types';
 import './Searchtype.css';
+import DisplayResults from '../DisplayResults/DisplayResults';
 
+
+var resulthtml = "";
 class Searchtype extends Component {
-
     constructor(props){
         super(props)
         this.state ={
@@ -10,11 +13,11 @@ class Searchtype extends Component {
             apiKey:'&key=AIzaSyAgFMFqrzredrINSo_tbOwOYh7ix088w-o',
             url: 'https://www.googleapis.com/books/v1/volumes?q=',
             searchTerm : "",
-            print: "",
-            filter: ""
+            print: "all",
+            filter: "",
+            receivedResponse: false
       };
 
-      console.log("Value of print: " + this.state.print)
 
       this.handleSearchChange = this.handleSearchChange.bind(this);
       this.handlePrintChange = this.handlePrintChange.bind(this);
@@ -38,11 +41,17 @@ class Searchtype extends Component {
         this.setState({filter : event.target.value})
     }
 
+
+
     queryResults = function ( search, print, filter)  
     {
         console.log("Value of print: " + this.state.print)
-        const apiUrl =`${this.state.url}${search}&filter=${filter}&printType=${print}${this.state.apiKey}`
-        console.log(apiUrl)
+        if(this.state.filter == "")
+            var apiUrl = this.state.url + this.state.searchTerm + "&printType=" + this.state.print + this.state.apiKey;
+        else
+            var apiUrl = this.state.url + this.state.searchTerm + "&filter=" + this.state.filter +  "&printType=" + this.state.print + this.state.apiKey;
+        
+            console.log(apiUrl)
         //https://www.googleapis.com/books/v1/volumes?q=undefined&filter=undefined&printType=undefined&key=AIzaSyAgFMFqrzredrINSo_tbOwOYh7ix088w-o"
         
        fetch(apiUrl)
@@ -56,42 +65,34 @@ class Searchtype extends Component {
             .then(data  => {
             console.log(data)
             this.setState({
-            results: data,
+                result: data.items,
+                receivedResponse: true
             });
-        
+            this.setHTML();
             })
             .catch(error =>  {
             this.setState({
                 error: error.message
             })
-            })
+        })
        
     }
-
     render(){
     return(
         <div>
-           <form className='searchform'>
-               <label> Search</label>
-               <input type="text" name='searchbook' id='searchbook' placeholder='henry' value= {this.state.searchTerm} onChange={this.handleSearchChange}></input>
-                <button type="button" onClick={()=>this.queryResults(this.state.searchTerm, this.state.print, this.state.filter)}>
-                    Search
-                </button>
-                <br />
-                <label>Print Type</label>
-                    <select id='print' name='print' onChange={this.handlePrintChange}>
-                        <option value='all'> All</option>
-                        <option value='books'> Books</option>
-                        <option value='magazines'> Magazines</option>
-                    </select>
-                    <label>Book Type</label>
-                    <select id='price' name='price' onChange={this.handleFilterChange}>
-                        <option value='full'>no filter</option>
-                        <option value='free-ebooks'> free</option>
-                        <option value='paid-ebooks'> paid</option>
-                    </select>
-           </form>
+            <Types 
+                searchTerm={this.state.searchTerm}
+                print={this.state.print}
+                filter={this.state.filter}
+                handleFilterChange={this.handleSearchChange}
+                handlePrintChange={this.handlePrintChange}
+                handleSearchChange={this.handleSearchChange}
+                queryResults={this.queryResults}
+            />
+           
+           {this.state.receivedResponse && <DisplayResults result={this.state.result} />}
         </div>
+       
     )
     }
 }

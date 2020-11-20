@@ -1,4 +1,5 @@
-.booktype{
-    text-align: center;
+
+.printType{
     background-color: lightgray;
+    padding: 0.5rem;
 }
